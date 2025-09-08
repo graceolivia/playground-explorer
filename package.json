@@ -1,0 +1,17 @@
+{
+  "name": "nyc-playground-explorer",
+  "version": "1.0.0",
+  "description": "A mobile-first web application for exploring NYC playgrounds",
+  "main": "index.html",
+  "scripts": {
+    "build": "node build.js",
+    "dev": "node build.js && python -m http.server 8000",
+    "serve": "python -m http.server 8000"
+  },
+  "keywords": ["nyc", "playgrounds", "mapbox", "mobile-first"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "dotenv": "^16.0.0"
+  }
+}

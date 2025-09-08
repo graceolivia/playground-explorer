@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NYC Playground Explorer 🛝</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Comic+Neue:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">🛝 NYC Playground Explorer</h1>
+            <p class="subtitle">Find the perfect playground for your adventure!</p>
+        </header>
+
+        <div class="filters-panel">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label for="borough-filter">Borough:</label>
+                    <select id="borough-filter" class="filter-select">
+                        <option value="">All Boroughs</option>
+                        <option value="B">Brooklyn</option>
+                        <option value="Q">Queens</option>
+                        <option value="M">Manhattan</option>
+                        <option value="X">Bronx</option>
+                        <option value="R">Staten Island</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="accessible-filter">Accessibility:</label>
+                    <select id="accessible-filter" class="filter-select">
+                        <option value="">All</option>
+                        <option value="Yes">Accessible</option>
+                        <option value="No">Not Accessible</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="spray-filter">
+                        <span class="checkmark">💦</span>
+                        Has Spray Showers
+                    </label>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="sensory-filter">
+                        <span class="checkmark">🧩</span>
+                        Sensory-Friendly
+                    </label>
+                </div>
+            </div>
+            
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label for="bathroom-filter">Bathrooms:</label>
+                    <select id="bathroom-filter" class="filter-select">
+                        <option value="">All</option>
+                        <option value="has">Has Bathrooms</option>
+                        <option value="accessible">Accessible Bathrooms</option>
+                        <option value="none">No Bathrooms</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="water-features-filter">
+                        <span class="checkmark">🚰</span>
+                        Water Features
+                    </label>
+                </div>
+            </div>
+            
+            <div class="search-group">
+                <input type="text" id="search-input" class="search-input" placeholder="Search by playground name...">
+                <button id="clear-filters" class="clear-btn">Clear All</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div id="map" class="map-container"></div>
+            
+            <div class="playground-info" id="playground-info">
+                <div class="info-content">
+                    <div class="welcome-message">
+                        <h3>Welcome! 🎈</h3>
+                        <p>Click on any playground marker to see details, or use the filters above to find your perfect playground!</p>
+                        <div class="stats">
+                            <div class="stat">
+                                <span class="stat-number" id="total-playgrounds">1015</span>
+                                <span class="stat-label">Total Playgrounds</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-number">420</span>
+                                <span class="stat-label">With Spray Showers</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
+    <script src="script.js"></script>
+</body>
+</html>
