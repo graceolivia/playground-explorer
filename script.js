@@ -92,28 +92,6 @@ class PlaygroundExplorer {
             const markerElement = document.createElement('div');
             markerElement.className = 'custom-marker';
             markerElement.innerHTML = '🛝';
-            markerElement.style.cssText = `
-                width: 30px;
-                height: 30px;
-                font-size: 20px;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background: white;
-                border: 3px solid #FFD23F;
-                border-radius: 50%;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-                transition: transform 0.2s ease;
-            `;
-            
-            markerElement.addEventListener('mouseenter', () => {
-                markerElement.style.transform = 'scale(1.2)';
-            });
-            
-            markerElement.addEventListener('mouseleave', () => {
-                markerElement.style.transform = 'scale(1)';
-            });
             
             const marker = new mapboxgl.Marker(markerElement)
                 .setLngLat([lon, lat])

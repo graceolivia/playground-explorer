@@ -309,6 +309,28 @@ body {
     color: var(--dark-gray);
 }
 
+/* Custom Marker Styles */
+.custom-marker {
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 20px !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: var(--white) !important;
+    border: 3px solid var(--sunny-yellow) !important;
+    border-radius: 50% !important;
+    box-shadow: 0 2px 8px var(--shadow) !important;
+    transition: transform 0.2s ease !important;
+    transform-origin: center !important;
+    position: relative !important;
+}
+
+.custom-marker:hover {
+    transform: scale(1.2) !important;
+}
+
 /* Mapbox Popup Customization */
 .mapboxgl-popup-content {
     border-radius: var(--border-radius-small) !important;
