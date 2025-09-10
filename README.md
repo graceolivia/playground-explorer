@@ -1,10 +1,10 @@
 # 🛝 NYC Playground Explorer
 
-A mobile-first web application for exploring all 1,015 playgrounds across New York City! Built with a colorful, kid-friendly design and interactive Mapbox map integration.
+A mobile-first web application for exploring all 1,015 playgrounds across New York City! Built with a colorful, kid-friendly design and interactive OpenStreetMap integration using Leaflet.
 
 ## Features
 
-- 🗺️ **Interactive Map**: Explore playgrounds on a beautiful Mapbox map
+- 🗺️ **Interactive Map**: Explore playgrounds on a beautiful OpenStreetMap
 - 🎯 **Smart Filtering**: Filter by borough, accessibility, spray showers, and sensory-friendly features  
 - 📱 **Mobile-First**: Optimized for phones and tablets
 - 🎨 **Kid-Friendly Design**: Bright colors and playful styling
@@ -27,12 +27,7 @@ cd nycPlaygroundExplorer2
 npm install
 ```
 
-3. **Set up your Mapbox token**
-   - Get a free token at [mapbox.com](https://account.mapbox.com/access-tokens/)
-   - Copy `.env.example` to `.env`
-   - Replace `your_mapbox_token_here` with your actual token
-
-4. **Build and run locally**
+3. **Build and run locally**
 ```bash
 npm run build
 npm run serve
@@ -40,22 +35,16 @@ npm run serve
 
 Visit `http://localhost:8000` to see your app!
 
-### GitHub Pages Deployment with Secrets
+### GitHub Pages Deployment
 
 For production deployment on GitHub Pages:
 
-1. **Add your Mapbox token to GitHub Secrets**
-   - Go to your repository Settings → Secrets and variables → Actions
-   - Click "New repository secret"
-   - Name: `MAPBOX_ACCESS_TOKEN`
-   - Value: Your Mapbox token
-
-2. **Enable GitHub Pages**
+1. **Enable GitHub Pages**
    - Go to repository Settings → Pages
    - Source: "GitHub Actions"
    - The workflow will automatically deploy on pushes to main
 
-3. **Push your code**
+2. **Push your code**
 ```bash
 git add .
 git commit -m "Initial commit"
@@ -64,17 +53,17 @@ git push origin main
 
 Your site will be automatically built and deployed to `https://yourusername.github.io/your-repo-name`
 
+**🎉 No API keys required!** The app uses OpenStreetMap which is completely free and open source.
+
 ## Project Structure
 
 ```
 ├── index.html              # Main HTML file
 ├── styles.css              # Kid-friendly CSS styling  
-├── script.template.js      # JavaScript template with token placeholder
+├── script.template.js      # JavaScript template
 ├── script.js               # Built JavaScript file (generated)
-├── build.js                # Build script for token injection
+├── build.js                # Build script
 ├── CombinedJSON01.json     # NYC playground data
-├── .env                    # Local environment variables (gitignored)
-├── .env.example            # Environment template
 ├── .github/workflows/      # GitHub Actions for deployment
 │   └── deploy.yml          
 └── package.json            # Node.js dependencies
@@ -83,12 +72,12 @@ Your site will be automatically built and deployed to `https://yourusername.gith
 
 ## Build Process
 
-The build system uses environment variables to securely inject your Mapbox token:
+The build system copies the JavaScript template to create the production file:
 
-- **Development**: Token loaded from `.env` file
-- **Production**: Token loaded from GitHub Secrets via `MAPBOX_ACCESS_TOKEN`
+- **No API keys needed** - OpenStreetMap is completely free!
+- **Simple build process** - Just copies template to output
 
-Run `npm run build` to generate `script.js` with your token injected.
+Run `npm run build` to generate the final `script.js` file.
 
 ## Data Source
 
@@ -101,8 +90,8 @@ Playground information sourced from NYC Open Data and combined with spray shower
 ## Technical Details
 
 - **Pure JavaScript** - No frameworks required
-- **Mapbox GL JS** - Interactive mapping
+- **Leaflet + OpenStreetMap** - Free, open-source mapping
 - **CSS Grid & Flexbox** - Responsive layout
 - **Mobile-first responsive design**
-- **Environment-based builds** - Secure token management
+- **No API keys required** - Works everywhere without setup
 - **GitHub Actions** - Automated deployment

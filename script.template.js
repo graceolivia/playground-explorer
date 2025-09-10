@@ -8,9 +8,6 @@ class PlaygroundExplorer {
         this.markers = [];
         this.currentPopup = null;
         
-        // Mapbox token will be injected during build process
-        this.mapboxToken = '{{MAPBOX_ACCESS_TOKEN}}';
-        
         this.init();
     }
     
@@ -35,49 +32,19 @@ class PlaygroundExplorer {
     }
     
     initMap() {
-        // Check if Mapbox token is set
-        if (this.mapboxToken === '{{MAPBOX_ACCESS_TOKEN}}' || this.mapboxToken === 'YOUR_MAPBOX_ACCESS_TOKEN_HERE') {
-            this.showMapboxTokenError();
-            return;
-        }
+        // Initialize Leaflet map
+        this.map = L.map('map').setView([40.7484, -73.9857], 10); // NYC center
         
-        mapboxgl.accessToken = this.mapboxToken;
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: '© <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(this.map);
         
-        this.map = new mapboxgl.Map({
-            container: 'map',
-            style: 'mapbox://styles/mapbox/streets-v12',
-            center: [-73.9857, 40.7484], // NYC center
-            zoom: 10,
-            attributionControl: false
-        });
-        
-        this.map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
-        this.map.addControl(new mapboxgl.AttributionControl({
-            compact: true
-        }));
-        
-        this.map.on('load', () => {
-            this.addPlaygroundMarkers();
-        });
+        // Map is ready, add markers
+        this.addPlaygroundMarkers();
     }
     
-    showMapboxTokenError() {
-        const mapContainer = document.getElementById('map');
-        mapContainer.innerHTML = `
-            <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: linear-gradient(135deg, #87CEEB, #98FB98); color: #343A40; text-align: center; padding: 2rem;">
-                <div>
-                    <h3 style="color: #4A90E2; margin-bottom: 1rem; font-family: 'Fredoka', cursive;">🗝️ Mapbox Token Required</h3>
-                    <p style="margin-bottom: 1rem; line-height: 1.5;">To view the interactive map, you'll need a free Mapbox token.</p>
-                    <p style="margin-bottom: 1rem; font-size: 0.9rem; color: #6C757D;">
-                        1. Get a free token at <a href="https://account.mapbox.com/access-tokens/" target="_blank" style="color: #4A90E2;">mapbox.com</a><br>
-                        2. Set MAPBOX_ACCESS_TOKEN in your .env file<br>
-                        3. Run <code>npm run build</code>
-                    </p>
-                    <p style="font-size: 0.8rem; color: #6C757D;">The filters below will still work! 🎯</p>
-                </div>
-            </div>
-        `;
-    }
     
     addPlaygroundMarkers() {
         this.clearMarkers();
@@ -88,16 +55,18 @@ class PlaygroundExplorer {
             
             if (isNaN(lat) || isNaN(lon)) return;
             
-            // Create custom marker element
-            const markerElement = document.createElement('div');
-            markerElement.className = 'custom-marker';
-            markerElement.innerHTML = '🛝';
+            // Create custom icon
+            const playgroundIcon = L.divIcon({
+                className: 'custom-marker',
+                html: '🛝',
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+            });
             
-            const marker = new mapboxgl.Marker(markerElement)
-                .setLngLat([lon, lat])
+            const marker = L.marker([lat, lon], { icon: playgroundIcon })
                 .addTo(this.map);
             
-            markerElement.addEventListener('click', () => {
+            marker.on('click', () => {
                 this.showPlaygroundDetails(playground);
                 this.showPlaygroundPopup(playground, marker);
             });
@@ -107,16 +76,12 @@ class PlaygroundExplorer {
     }
     
     showPlaygroundPopup(playground, marker) {
-        if (this.currentPopup) {
-            this.currentPopup.remove();
-        }
-        
         const features = [];
         if (playground.Accessible === 'Yes') features.push('<span class="feature-tag accessible">♿ Accessible</span>');
         if (playground.has_spray_showers) features.push('<span class="feature-tag spray">💦 Spray Showers</span>');
         if (playground['Sensory-Friendly'] === 'Y') features.push('<span class="feature-tag sensory">🧩 Sensory-Friendly</span>');
         if (playground.ADA_Accessible_Comfort_Station === 'Accessible') features.push('<span class="feature-tag bathroom">🚻 Accessible Bathrooms</span>');
-        else if (playground.ADA_Accessible_Comfort_Station === 'Not Accessible') features.push('<span class="feature-tag bathroom">🚻 Bathrooms</span>');
+        else if (playground.ADA_Accessible_Comfort_Station === 'Not Accessible' || playground.ADA_Accessible_Comfort_Station === 'NotAccessible') features.push('<span class="feature-tag bathroom">🚻 Bathrooms</span>');
         
         const popupContent = `
             <div style="max-width: 250px;">
@@ -126,25 +91,13 @@ class PlaygroundExplorer {
             </div>
         `;
         
-        this.currentPopup = new mapboxgl.Popup({
-            offset: 35,
-            closeOnClick: true,
-            className: 'playground-popup'
-        })
-        .setHTML(popupContent)
-        .addTo(this.map);
-        
-        marker.setPopup(this.currentPopup);
-        this.currentPopup.addTo(this.map);
+        marker.bindPopup(popupContent).openPopup();
     }
     
     clearMarkers() {
-        this.markers.forEach(marker => marker.remove());
+        this.markers.forEach(marker => this.map.removeLayer(marker));
         this.markers = [];
-        if (this.currentPopup) {
-            this.currentPopup.remove();
-            this.currentPopup = null;
-        }
+        this.map.closePopup();
     }
     
     showPlaygroundDetails(playground) {
@@ -158,7 +111,7 @@ class PlaygroundExplorer {
         // Bathroom features
         if (playground.ADA_Accessible_Comfort_Station === 'Accessible') {
             features.push('<span class="feature-tag bathroom">🚻 Accessible Bathrooms</span>');
-        } else if (playground.ADA_Accessible_Comfort_Station === 'Not Accessible') {
+        } else if (playground.ADA_Accessible_Comfort_Station === 'Not Accessible' || playground.ADA_Accessible_Comfort_Station === 'NotAccessible') {
             features.push('<span class="feature-tag bathroom">🚻 Bathrooms</span>');
         }
         
@@ -275,7 +228,7 @@ class PlaygroundExplorer {
                         }
                         break;
                     case 'none':
-                        if (bathroomStatus !== 'No' && bathroomStatus !== null) {
+                        if (bathroomStatus !== 'No' && bathroomStatus !== null && bathroomStatus !== undefined) {
                             return false;
                         }
                         break;
@@ -306,22 +259,23 @@ class PlaygroundExplorer {
     }
     
     updateMapMarkers() {
-        if (this.map && this.map.loaded()) {
+        if (this.map) {
             this.addPlaygroundMarkers();
             
             // Fit map to filtered results if there are any
             if (this.filteredPlaygrounds.length > 0 && this.filteredPlaygrounds.length < 50) {
-                const bounds = new mapboxgl.LngLatBounds();
+                const coordinates = [];
                 this.filteredPlaygrounds.forEach(playground => {
                     const lat = parseFloat(playground.lat);
                     const lon = parseFloat(playground.lon);
                     if (!isNaN(lat) && !isNaN(lon)) {
-                        bounds.extend([lon, lat]);
+                        coordinates.push([lat, lon]);
                     }
                 });
                 
-                if (!bounds.isEmpty()) {
-                    this.map.fitBounds(bounds, { padding: 50 });
+                if (coordinates.length > 0) {
+                    const bounds = L.latLngBounds(coordinates);
+                    this.map.fitBounds(bounds, { padding: [20, 20] });
                 }
             }
         }

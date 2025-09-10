@@ -11,7 +11,5 @@
   "keywords": ["nyc", "playgrounds", "mapbox", "mobile-first"],
   "author": "",
   "license": "MIT",
-  "devDependencies": {
-    "dotenv": "^16.0.0"
-  }
+  "devDependencies": {}
 }

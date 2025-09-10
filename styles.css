@@ -309,7 +309,7 @@ body {
     color: var(--dark-gray);
 }
 
-/* Custom Marker Styles */
+/* Custom Marker Styles for Leaflet */
 .custom-marker {
     width: 30px !important;
     height: 30px !important;
@@ -325,24 +325,35 @@ body {
     transition: transform 0.2s ease !important;
     transform-origin: center !important;
     position: relative !important;
+    text-align: center !important;
+    line-height: 1 !important;
 }
 
 .custom-marker:hover {
     transform: scale(1.2) !important;
 }
 
-/* Mapbox Popup Customization */
-.mapboxgl-popup-content {
+/* Leaflet Popup Customization */
+.leaflet-popup-content-wrapper {
     border-radius: var(--border-radius-small) !important;
-    padding: 1rem !important;
     font-family: 'Comic Neue', sans-serif !important;
     box-shadow: 0 4px 12px var(--shadow) !important;
     border: 2px solid var(--sunny-yellow) !important;
 }
 
-.mapboxgl-popup-tip {
-    border-top-color: var(--sunny-yellow) !important;
-    border-bottom-color: var(--sunny-yellow) !important;
+.leaflet-popup-content {
+    margin: 1rem !important;
+    line-height: 1.4 !important;
+}
+
+.leaflet-popup-tip {
+    background: var(--sunny-yellow) !important;
+}
+
+/* Override Leaflet's default marker styles */
+.leaflet-div-icon {
+    background: transparent !important;
+    border: none !important;
 }
 
 /* Responsive Design */
