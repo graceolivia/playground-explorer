@@ -1,0 +1,82 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Map container */
+#map {
+    height: 100vh;
+    width: 100%;
+}
+
+/* Popup styling */
+.leaflet-popup-content h3 {
+    margin: 0 0 8px 0;
+    color: #2c3e50;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.leaflet-popup-content p {
+    margin: 4px 0;
+    font-size: 14px;
+    color: #34495e;
+    line-height: 1.4;
+}
+
+/* Cluster styling */
+.marker-cluster-small {
+    background-color: rgba(181, 226, 140, 0.6);
+    border: 2px solid rgba(110, 204, 57, 0.8);
+}
+
+.marker-cluster-small div {
+    background-color: rgba(110, 204, 57, 0.8);
+    color: white;
+    font-weight: bold;
+}
+
+.marker-cluster-medium {
+    background-color: rgba(241, 211, 87, 0.6);
+    border: 2px solid rgba(240, 194, 12, 0.8);
+}
+
+.marker-cluster-medium div {
+    background-color: rgba(240, 194, 12, 0.8);
+    color: white;
+    font-weight: bold;
+}
+
+.marker-cluster-large {
+    background-color: rgba(253, 156, 115, 0.6);
+    border: 2px solid rgba(241, 128, 23, 0.8);
+}
+
+.marker-cluster-large div {
+    background-color: rgba(241, 128, 23, 0.8);
+    color: white;
+    font-weight: bold;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .leaflet-popup-content {
+        font-size: 14px;
+    }
+    
+    .leaflet-popup-content h3 {
+        font-size: 15px;
+    }
+    
+    .leaflet-popup-content p {
+        font-size: 13px;
+    }
+}
