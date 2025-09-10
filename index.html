@@ -15,7 +15,54 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="map"></div>
+    <div class="app-container">
+        <!-- Sidebar/Navigation -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-content">
+                <h1 class="app-title">🛝 NYC Playground Explorer</h1>
+                
+                <div class="filters-section">
+                    <h2>Filter Playgrounds</h2>
+                    
+                    <!-- Bathroom Accessibility Filter -->
+                    <div class="filter-group">
+                        <label class="filter-label">🚻 Bathroom Accessibility</label>
+                        <select id="bathroom-filter" class="filter-select">
+                            <option value="">All</option>
+                            <option value="Accessible">Accessible</option>
+                            <option value="Not Accessible">Not Accessible</option>
+                            <option value="No">No Bathrooms</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Toggle Buttons Row -->
+                    <div class="filter-group">
+                        <div class="toggle-buttons">
+                            <button id="sensory-filter" class="toggle-btn" data-active="false">
+                                🧩 Sensory-Friendly
+                            </button>
+                            <button id="spray-filter" class="toggle-btn" data-active="false">
+                                💦 Spray Showers
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Clear Filters Button -->
+                    <button id="clear-filters" class="clear-btn">Clear All Filters</button>
+                </div>
+                
+                <!-- Results Summary -->
+                <div class="results-summary">
+                    <p id="results-count">Loading playgrounds...</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Map Container -->
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
+    </div>
 
     <!-- Leaflet JavaScript -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
