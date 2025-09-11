@@ -26,13 +26,17 @@
                     
                     <!-- Bathroom Accessibility Filter -->
                     <div class="filter-group">
-                        <label class="filter-label">🚻 Bathroom Accessibility</label>
-                        <select id="bathroom-filter" class="filter-select">
-                            <option value="">All</option>
-                            <option value="Accessible">Accessible</option>
-                            <option value="Not Accessible">Not Accessible</option>
-                            <option value="No">No Bathrooms</option>
-                        </select>
+                        <label class="filter-label">🚻 Bathrooms</label>
+                        <div class="radio-buttons">
+                            <label class="radio-option">
+                                <input type="radio" name="bathroom" value="has-bathroom">
+                                <span class="radio-text">Yes</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="bathroom" value="Accessible">
+                                <span class="radio-text">Accessible</span>
+                            </label>
+                        </div>
                     </div>
                     
                     <!-- Toggle Buttons Row -->

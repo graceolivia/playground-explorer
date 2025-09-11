@@ -110,13 +110,13 @@ function createPopupContent(playground) {
 
 // Setup filter event listeners
 function setupFilters() {
-    const bathroomFilter = document.getElementById('bathroom-filter');
+    const bathroomRadios = document.querySelectorAll('input[name="bathroom"]');
     const sensoryFilter = document.getElementById('sensory-filter');
     const sprayFilter = document.getElementById('spray-filter');
     const clearButton = document.getElementById('clear-filters');
     
     // Add event listeners
-    bathroomFilter.addEventListener('change', applyFilters);
+    bathroomRadios.forEach(radio => radio.addEventListener('change', applyFilters));
     sensoryFilter.addEventListener('click', toggleButton);
     sprayFilter.addEventListener('click', toggleButton);
     clearButton.addEventListener('click', clearFilters);
@@ -132,14 +132,23 @@ function toggleButton(event) {
 
 // Apply filters to playground data
 function applyFilters() {
-    const bathroomValue = document.getElementById('bathroom-filter').value;
+    const checkedBathroom = document.querySelector('input[name="bathroom"]:checked');
+    const bathroomValue = checkedBathroom ? checkedBathroom.value : '';
     const sensoryChecked = document.getElementById('sensory-filter').getAttribute('data-active') === 'true';
     const sprayChecked = document.getElementById('spray-filter').getAttribute('data-active') === 'true';
     
     filteredPlaygrounds = playgrounds.filter(playground => {
         // Bathroom filter
-        if (bathroomValue && playground.ADA_Accessible_Comfort_Station !== bathroomValue) {
-            return false;
+        if (bathroomValue === 'has-bathroom') {
+            // Show any playground with bathrooms (accessible or not accessible)
+            if (playground.ADA_Accessible_Comfort_Station === 'No' || !playground.ADA_Accessible_Comfort_Station) {
+                return false;
+            }
+        } else if (bathroomValue === 'Accessible') {
+            // Show only accessible bathrooms
+            if (playground.ADA_Accessible_Comfort_Station !== 'Accessible') {
+                return false;
+            }
         }
         
         // Sensory-friendly filter
@@ -162,7 +171,11 @@ function applyFilters() {
 
 // Clear all filters
 function clearFilters() {
-    document.getElementById('bathroom-filter').value = '';
+    // Clear radio buttons
+    const bathroomRadios = document.querySelectorAll('input[name="bathroom"]');
+    bathroomRadios.forEach(radio => radio.checked = false);
+    
+    // Clear toggle buttons
     document.getElementById('sensory-filter').setAttribute('data-active', 'false');
     document.getElementById('spray-filter').setAttribute('data-active', 'false');
     
