@@ -94,16 +94,8 @@ function addPlaygroundMarkers() {
         // Skip if coordinates are invalid
         if (isNaN(lat) || isNaN(lon)) return;
         
-        // Create custom blue dot marker
-        const blueIcon = L.divIcon({
-            className: 'blue-dot-marker',
-            html: '',
-            iconSize: [12, 12],
-            iconAnchor: [6, 6]
-        });
-        
-        // Create marker with custom icon
-        const marker = L.marker([lat, lon], { icon: blueIcon });
+        // Create marker with default pin
+        const marker = L.marker([lat, lon]);
         
         // Create popup content with more details
         const popupContent = createPopupContent(playground);
@@ -307,7 +299,7 @@ function addSearchMarker(lat, lng, address) {
     const searchIcon = L.divIcon({
         className: 'search-marker',
         html: '⭐',
-        iconSize: [20, 20],
+        iconSize: [40, 40],
         iconAnchor: [10, 10]
     });
     
