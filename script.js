@@ -8,7 +8,7 @@ let markerClusterGroup;
 // Initialize the map
 function initMap() {
     // Create map centered on NYC
-    map = L.map('map').setView([40.7484, -73.9857], 11);
+    map = L.map('map').setView([40.7884, -73.8857], 12);
     
     // Add OpenStreetMap tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
