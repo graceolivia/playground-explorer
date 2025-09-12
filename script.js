@@ -10,10 +10,12 @@ function initMap() {
     // Create map centered on NYC
     map = L.map('map').setView([40.7884, -73.8857], 12);
     
-    // Add OpenStreetMap tiles
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 18
+    // Add Mapbox custom style tiles
+    L.tileLayer('https://api.mapbox.com/styles/v1/laramie/cmf8k94as004501qs1ao0e8n0/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoibGFyYW1pZSIsImEiOiJja2VvZWtsYnExYWppMnltc3ZrMW45dHB1In0.Oc0kzrEhq7ZfdPSBWIpHzQ', {
+        attribution: '© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 18,
+        tileSize: 512,
+        zoomOffset: -1
     }).addTo(map);
     
     // Load playground data
