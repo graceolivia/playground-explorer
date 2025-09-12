@@ -33,7 +33,7 @@ function initMap() {
 // Load playground data from JSON
 async function loadPlaygrounds() {
     try {
-        const response = await fetch('./CombinedJSON01.json');
+        const response = await fetch('./CombinedJSON02.json');
         const data = await response.json();
         playgrounds = data.playgrounds;
         filteredPlaygrounds = [...playgrounds]; // Start with all playgrounds
@@ -130,6 +130,11 @@ function createPopupContent(playground) {
         features.push(`💦 ${playground.spray_shower_count} Spray Shower${playground.spray_shower_count !== 1 ? 's' : ''}`);
     }
     
+    // Add water fountain info
+    if (playground.has_drinking_fountains) {
+        features.push(`🚰 ${playground.drinking_fountain_count} Water Fountain${playground.drinking_fountain_count !== 1 ? 's' : ''}`);
+    }
+    
     return `
         <div>
             <h3>${playground.Name}</h3>
@@ -145,12 +150,14 @@ function setupFilters() {
     const bathroomRadios = document.querySelectorAll('input[name="bathroom"]');
     const sensoryFilter = document.getElementById('sensory-filter');
     const sprayFilter = document.getElementById('spray-filter');
+    const fountainFilter = document.getElementById('fountain-filter');
     const clearButton = document.getElementById('clear-filters');
     
     // Add event listeners
     bathroomRadios.forEach(radio => radio.addEventListener('change', applyFilters));
     sensoryFilter.addEventListener('click', toggleButton);
     sprayFilter.addEventListener('click', toggleButton);
+    fountainFilter.addEventListener('click', toggleButton);
     clearButton.addEventListener('click', clearFilters);
 }
 
@@ -168,6 +175,7 @@ function applyFilters() {
     const bathroomValue = checkedBathroom ? checkedBathroom.value : '';
     const sensoryChecked = document.getElementById('sensory-filter').getAttribute('data-active') === 'true';
     const sprayChecked = document.getElementById('spray-filter').getAttribute('data-active') === 'true';
+    const fountainChecked = document.getElementById('fountain-filter').getAttribute('data-active') === 'true';
     
     filteredPlaygrounds = playgrounds.filter(playground => {
         // Bathroom filter
@@ -193,6 +201,11 @@ function applyFilters() {
             return false;
         }
         
+        // Water fountain filter
+        if (fountainChecked && !playground.has_drinking_fountains) {
+            return false;
+        }
+        
         return true;
     });
     
@@ -210,6 +223,7 @@ function clearFilters() {
     // Clear toggle buttons
     document.getElementById('sensory-filter').setAttribute('data-active', 'false');
     document.getElementById('spray-filter').setAttribute('data-active', 'false');
+    document.getElementById('fountain-filter').setAttribute('data-active', 'false');
     
     // Reset to show all playgrounds
     filteredPlaygrounds = [...playgrounds];
