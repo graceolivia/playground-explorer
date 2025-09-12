@@ -4,6 +4,8 @@ let map;
 let playgrounds = [];
 let filteredPlaygrounds = [];
 let markerClusterGroup;
+let searchMarker = null;
+let searchLocation = null;
 
 // Initialize the map
 function initMap() {
@@ -23,6 +25,9 @@ function initMap() {
     
     // Setup filter event listeners
     setupFilters();
+    
+    // Setup address search
+    setupAddressSearch();
 }
 
 // Load playground data from JSON
@@ -50,10 +55,35 @@ function addPlaygroundMarkers() {
         map.removeLayer(markerClusterGroup);
     }
     
-    // Create marker cluster group
+    // Create marker cluster group with custom icon creation
     markerClusterGroup = L.markerClusterGroup({
         chunkedLoading: true,
-        maxClusterRadius: 50
+        maxClusterRadius: 50,
+        iconCreateFunction: function(cluster) {
+            const childCount = cluster.getChildCount();
+            let size, className;
+            
+            // Scale cluster size based on count
+            if (childCount < 5) {
+                size = 30;
+                className = 'marker-cluster marker-cluster-small';
+            } else if (childCount < 15) {
+                size = 40;
+                className = 'marker-cluster marker-cluster-medium';
+            } else if (childCount < 30) {
+                size = 50;
+                className = 'marker-cluster marker-cluster-large';
+            } else {
+                size = 60;
+                className = 'marker-cluster marker-cluster-xlarge';
+            }
+            
+            return new L.DivIcon({
+                html: '<div><span>' + childCount + '</span></div>',
+                className: className,
+                iconSize: new L.Point(size, size)
+            });
+        }
     });
     
     // Add markers for filtered playgrounds
@@ -64,8 +94,16 @@ function addPlaygroundMarkers() {
         // Skip if coordinates are invalid
         if (isNaN(lat) || isNaN(lon)) return;
         
-        // Create marker
-        const marker = L.marker([lat, lon]);
+        // Create custom blue dot marker
+        const blueIcon = L.divIcon({
+            className: 'blue-dot-marker',
+            html: '',
+            iconSize: [12, 12],
+            iconAnchor: [6, 6]
+        });
+        
+        // Create marker with custom icon
+        const marker = L.marker([lat, lon], { icon: blueIcon });
         
         // Create popup content with more details
         const popupContent = createPopupContent(playground);
@@ -210,6 +248,134 @@ function getBoroughName(code) {
         'R': 'Staten Island'
     };
     return boroughs[code] || 'Unknown';
+}
+
+// Setup address search functionality
+function setupAddressSearch() {
+    const addressInput = document.getElementById('address-input');
+    const searchBtn = document.getElementById('search-btn');
+    
+    searchBtn.addEventListener('click', searchAddress);
+    addressInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            searchAddress();
+        }
+    });
+}
+
+// Search for address and show nearby playgrounds
+async function searchAddress() {
+    const address = document.getElementById('address-input').value.trim();
+    if (!address) return;
+    
+    try {
+        // Use Mapbox Geocoding API to get coordinates
+        const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=pk.eyJ1IjoibGFyYW1pZSIsImEiOiJja2VvZWtsYnExYWppMnltc3ZrMW45dHB1In0.Oc0kzrEhq7ZfdPSBWIpHzQ&proximity=-73.9857,40.7484&country=us`);
+        const data = await response.json();
+        
+        if (data.features && data.features.length > 0) {
+            const [lng, lat] = data.features[0].center;
+            searchLocation = { lat, lng };
+            
+            // Add search marker
+            addSearchMarker(lat, lng, data.features[0].place_name);
+            
+            // Zoom to location
+            map.setView([lat, lng], 15);
+            
+            // Filter nearby playgrounds
+            filterNearbyPlaygrounds(lat, lng);
+            
+        } else {
+            alert('Address not found. Please try a different address.');
+        }
+        
+    } catch (error) {
+        console.error('Geocoding error:', error);
+        alert('Error searching for address. Please try again.');
+    }
+}
+
+// Add search location marker
+function addSearchMarker(lat, lng, address) {
+    // Remove existing search marker
+    if (searchMarker) {
+        map.removeLayer(searchMarker);
+    }
+    
+    // Create custom search marker with yellow star
+    const searchIcon = L.divIcon({
+        className: 'search-marker',
+        html: '⭐',
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+    });
+    
+    searchMarker = L.marker([lat, lng], { icon: searchIcon })
+        .addTo(map)
+        .bindTooltip(`Starting location: ${address}`, {
+            permanent: false,
+            direction: 'top',
+            offset: [0, -10]
+        });
+}
+
+// Filter playgrounds within selected distance
+function filterNearbyPlaygrounds(searchLat, searchLng) {
+    const selectedDistance = document.querySelector('input[name="distance"]:checked').value;
+    const maxDistance = parseFloat(selectedDistance);
+    
+    // Calculate distances and filter
+    const nearbyPlaygrounds = playgrounds.filter(playground => {
+        const lat = parseFloat(playground.lat);
+        const lng = parseFloat(playground.lon);
+        
+        if (isNaN(lat) || isNaN(lng)) return false;
+        
+        const distance = calculateDistance(searchLat, searchLng, lat, lng);
+        playground.distanceFromSearch = distance;
+        
+        return distance <= maxDistance;
+    });
+    
+    // Sort by distance
+    nearbyPlaygrounds.sort((a, b) => a.distanceFromSearch - b.distanceFromSearch);
+    
+    // Update filtered playgrounds and map
+    filteredPlaygrounds = nearbyPlaygrounds;
+    addPlaygroundMarkers();
+    updateResultsCount();
+    
+    // Update results text to show search context
+    const count = filteredPlaygrounds.length;
+    const resultsElement = document.getElementById('results-count');
+    
+    // Convert distance to walking time
+    const walkingTimes = {
+        0.25: '5 minute walk',
+        0.5: '10 minute walk', 
+        0.75: '15 minute walk',
+        1: '20 minute walk'
+    };
+    const walkingTime = walkingTimes[maxDistance] || `${maxDistance} mile${maxDistance !== 1 ? 's' : ''}`;
+    
+    if (count > 0) {
+        resultsElement.textContent = `Found ${count} playground${count !== 1 ? 's' : ''} within a ${walkingTime}`;
+    } else {
+        resultsElement.textContent = `No playgrounds found within a ${walkingTime}`;
+    }
+}
+
+// Calculate distance between two points in miles
+function calculateDistance(lat1, lng1, lat2, lng2) {
+    const R = 3959; // Earth's radius in miles
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
 }
 
 // Initialize when page loads
