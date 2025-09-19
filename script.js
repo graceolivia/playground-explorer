@@ -97,8 +97,22 @@ function addPlaygroundMarkers() {
         // Skip if coordinates are invalid
         if (isNaN(lat) || isNaN(lon)) return;
         
-        // Create marker with default pin
-        const marker = L.marker([lat, lon]);
+        // Create marker - use emoji if available and has valid emoji, otherwise default pin
+        let marker;
+        if (playground.reviews && playground.reviews.emoji && 
+            playground.reviews.emoji !== 'unknown' && playground.reviews.emoji.trim() !== '') {
+            // Create emoji marker
+            const emojiIcon = L.divIcon({
+                className: 'emoji-marker',
+                html: playground.reviews.emoji,
+                iconSize: [40, 40],
+                iconAnchor: [20, 20]
+            });
+            marker = L.marker([lat, lon], { icon: emojiIcon });
+        } else {
+            // Use default pin
+            marker = L.marker([lat, lon]);
+        }
         
         // Create popup content with more details
         const popupContent = createPopupContent(playground);
@@ -186,6 +200,7 @@ function setupFilters() {
     const sensoryFilter = document.getElementById('sensory-filter');
     const sprayFilter = document.getElementById('spray-filter');
     const fountainFilter = document.getElementById('fountain-filter');
+    const noveltyFilter = document.getElementById('novelty-filter');
     const clearButton = document.getElementById('clear-filters');
     
     // Add event listeners
@@ -193,6 +208,7 @@ function setupFilters() {
     sensoryFilter.addEventListener('click', toggleButton);
     sprayFilter.addEventListener('click', toggleButton);
     fountainFilter.addEventListener('click', toggleButton);
+    noveltyFilter.addEventListener('click', toggleButton);
     clearButton.addEventListener('click', clearFilters);
 }
 
@@ -211,6 +227,7 @@ function applyFilters() {
     const sensoryChecked = document.getElementById('sensory-filter').getAttribute('data-active') === 'true';
     const sprayChecked = document.getElementById('spray-filter').getAttribute('data-active') === 'true';
     const fountainChecked = document.getElementById('fountain-filter').getAttribute('data-active') === 'true';
+    const noveltyChecked = document.getElementById('novelty-filter').getAttribute('data-active') === 'true';
     
     // Check if there's an active search term
     const searchTerm = document.getElementById('playground-search-input').value.trim().toLowerCase();
@@ -224,6 +241,14 @@ function applyFilters() {
     }
     
     filteredPlaygrounds = playgroundsToFilter.filter(playground => {
+        // Novelty filter - only show playgrounds with valid emojis
+        if (noveltyChecked) {
+            if (!playground.reviews || !playground.reviews.emoji || 
+                playground.reviews.emoji === 'unknown' || playground.reviews.emoji.trim() === '') {
+                return false;
+            }
+        }
+        
         // Bathroom filter
         if (bathroomValue === 'has-bathroom') {
             // Show any playground with bathrooms (accessible or not accessible)
@@ -276,6 +301,7 @@ function clearFilters() {
     document.getElementById('sensory-filter').setAttribute('data-active', 'false');
     document.getElementById('spray-filter').setAttribute('data-active', 'false');
     document.getElementById('fountain-filter').setAttribute('data-active', 'false');
+    document.getElementById('novelty-filter').setAttribute('data-active', 'false');
     
     // Clear playground search
     document.getElementById('playground-search-input').value = '';
@@ -479,6 +505,15 @@ function applyPlaygroundSearch() {
         const sensoryChecked = document.getElementById('sensory-filter').getAttribute('data-active') === 'true';
         const sprayChecked = document.getElementById('spray-filter').getAttribute('data-active') === 'true';
         const fountainChecked = document.getElementById('fountain-filter').getAttribute('data-active') === 'true';
+        const noveltyChecked = document.getElementById('novelty-filter').getAttribute('data-active') === 'true';
+        
+        // Apply novelty filter
+        if (noveltyChecked) {
+            if (!playground.reviews || !playground.reviews.emoji || 
+                playground.reviews.emoji === 'unknown' || playground.reviews.emoji.trim() === '') {
+                return false;
+            }
+        }
         
         // Apply bathroom filter
         if (bathroomValue === 'has-bathroom') {
