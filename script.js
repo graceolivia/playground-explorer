@@ -28,12 +28,15 @@ function initMap() {
     
     // Setup address search
     setupAddressSearch();
+    
+    // Setup playground search
+    setupPlaygroundSearch();
 }
 
 // Load playground data from JSON
 async function loadPlaygrounds() {
     try {
-        const response = await fetch('./CombinedJSON02.json');
+        const response = await fetch('./data/CombinedJSON03.updated20250921.json');
         const data = await response.json();
         playgrounds = data.playgrounds;
         filteredPlaygrounds = [...playgrounds]; // Start with all playgrounds
@@ -94,8 +97,22 @@ function addPlaygroundMarkers() {
         // Skip if coordinates are invalid
         if (isNaN(lat) || isNaN(lon)) return;
         
-        // Create marker with default pin
-        const marker = L.marker([lat, lon]);
+        // Create marker - use emoji if available and has valid emoji, otherwise default pin
+        let marker;
+        if (playground.reviews && playground.reviews.emoji && 
+            playground.reviews.emoji !== 'unknown' && playground.reviews.emoji.trim() !== '') {
+            // Create emoji marker
+            const emojiIcon = L.divIcon({
+                className: 'emoji-marker',
+                html: playground.reviews.emoji,
+                iconSize: [40, 40],
+                iconAnchor: [20, 20]
+            });
+            marker = L.marker([lat, lon], { icon: emojiIcon });
+        } else {
+            // Use default pin
+            marker = L.marker([lat, lon]);
+        }
         
         // Create popup content with more details
         const popupContent = createPopupContent(playground);
@@ -134,13 +151,45 @@ function createPopupContent(playground) {
     if (playground.has_drinking_fountains) {
         features.push(`🚰 ${playground.drinking_fountain_count} Water Fountain${playground.drinking_fountain_count !== 1 ? 's' : ''}`);
     }
-    
+
+    // Add review information if available and not "unknown"
+    const reviewInfo = [];
+    if (playground.reviews) {
+        // Best age
+        if (playground.reviews.bestAge && playground.reviews.bestAge !== 'unknown') {
+            reviewInfo.push(`👶 Best for: ${playground.reviews.bestAge}`);
+        }
+
+        // Theme
+        if (playground.reviews.theme && Array.isArray(playground.reviews.theme) &&
+            playground.reviews.theme.length > 0 && playground.reviews.theme[0] !== 'unknown') {
+            reviewInfo.push(`🎨 Theme: ${playground.reviews.theme.join(', ')}`);
+        }
+
+        // Novelty traits
+        if (playground.reviews.noveltyTraits && Array.isArray(playground.reviews.noveltyTraits) &&
+            playground.reviews.noveltyTraits.length > 0 && playground.reviews.noveltyTraits[0] !== 'unknown') {
+            reviewInfo.push(`✨ Special features: ${playground.reviews.noveltyTraits.join(', ')}`);
+        }
+
+        // Emoji
+        if (playground.reviews.emoji && playground.reviews.emoji !== 'unknown') {
+            reviewInfo.push(`${playground.reviews.emoji}`);
+        }
+
+        // Notes
+        if (playground.reviews.notes && playground.reviews.notes !== 'unknown') {
+            reviewInfo.push(`📝 ${playground.reviews.notes}`);
+        }
+    }
+
     return `
         <div>
             <h3>${playground.Name}</h3>
             <p><strong>Location:</strong> ${playground.Location}</p>
             <p><strong>Borough:</strong> ${getBoroughName(playground.Prop_ID[0])}</p>
             ${features.length > 0 ? `<div style="margin-top: 8px; font-size: 0.9em; color: #666;">${features.join('<br>')}</div>` : ''}
+            ${reviewInfo.length > 0 ? `<div style="margin-top: 8px; font-size: 0.9em; color: #555; border-top: 1px solid #eee; padding-top: 8px;">${reviewInfo.join('<br>')}</div>` : ''}
         </div>
     `;
 }
@@ -151,6 +200,7 @@ function setupFilters() {
     const sensoryFilter = document.getElementById('sensory-filter');
     const sprayFilter = document.getElementById('spray-filter');
     const fountainFilter = document.getElementById('fountain-filter');
+    const noveltyFilter = document.getElementById('novelty-filter');
     const clearButton = document.getElementById('clear-filters');
     
     // Add event listeners
@@ -158,6 +208,7 @@ function setupFilters() {
     sensoryFilter.addEventListener('click', toggleButton);
     sprayFilter.addEventListener('click', toggleButton);
     fountainFilter.addEventListener('click', toggleButton);
+    noveltyFilter.addEventListener('click', toggleButton);
     clearButton.addEventListener('click', clearFilters);
 }
 
@@ -176,8 +227,28 @@ function applyFilters() {
     const sensoryChecked = document.getElementById('sensory-filter').getAttribute('data-active') === 'true';
     const sprayChecked = document.getElementById('spray-filter').getAttribute('data-active') === 'true';
     const fountainChecked = document.getElementById('fountain-filter').getAttribute('data-active') === 'true';
+    const noveltyChecked = document.getElementById('novelty-filter').getAttribute('data-active') === 'true';
     
-    filteredPlaygrounds = playgrounds.filter(playground => {
+    // Check if there's an active search term
+    const searchTerm = document.getElementById('playground-search-input').value.trim().toLowerCase();
+    let playgroundsToFilter = playgrounds;
+    
+    // If there's a search term, filter by name first
+    if (searchTerm !== '') {
+        playgroundsToFilter = playgrounds.filter(playground => {
+            return playground.Name && playground.Name.toLowerCase().includes(searchTerm);
+        });
+    }
+    
+    filteredPlaygrounds = playgroundsToFilter.filter(playground => {
+        // Novelty filter - only show playgrounds with valid emojis
+        if (noveltyChecked) {
+            if (!playground.reviews || !playground.reviews.emoji ||
+                playground.reviews.emoji === 'unknown' || playground.reviews.emoji.trim() === '') {
+                return false;
+            }
+        }
+        
         // Bathroom filter
         if (bathroomValue === 'has-bathroom') {
             // Show any playground with bathrooms (accessible or not accessible)
@@ -211,7 +282,13 @@ function applyFilters() {
     
     // Update map and UI
     addPlaygroundMarkers();
-    updateResultsCount();
+    
+    // Use appropriate results count function based on search state
+    if (searchTerm !== '') {
+        updateSearchResultsCount(searchTerm);
+    } else {
+        updateResultsCount();
+    }
 }
 
 // Clear all filters
@@ -224,6 +301,10 @@ function clearFilters() {
     document.getElementById('sensory-filter').setAttribute('data-active', 'false');
     document.getElementById('spray-filter').setAttribute('data-active', 'false');
     document.getElementById('fountain-filter').setAttribute('data-active', 'false');
+    document.getElementById('novelty-filter').setAttribute('data-active', 'false');
+    
+    // Clear playground search
+    document.getElementById('playground-search-input').value = '';
     
     // Reset to show all playgrounds
     filteredPlaygrounds = [...playgrounds];
@@ -382,6 +463,109 @@ function calculateDistance(lat1, lng1, lat2, lng2) {
               Math.sin(dLng / 2) * Math.sin(dLng / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
+}
+
+// Setup playground search functionality
+function setupPlaygroundSearch() {
+    const playgroundSearchInput = document.getElementById('playground-search-input');
+    const playgroundSearchClear = document.getElementById('playground-search-clear');
+    
+    // Add event listeners for search input
+    playgroundSearchInput.addEventListener('input', applyPlaygroundSearch);
+    playgroundSearchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            applyPlaygroundSearch();
+        }
+    });
+    
+    // Add event listener for clear button
+    playgroundSearchClear.addEventListener('click', clearPlaygroundSearch);
+}
+
+// Apply playground name search
+function applyPlaygroundSearch() {
+    const searchTerm = document.getElementById('playground-search-input').value.trim().toLowerCase();
+    
+    if (searchTerm === '') {
+        // If search is empty, apply existing filters without search
+        applyFilters();
+        return;
+    }
+    
+    // Filter playgrounds by name containing the search term
+    const searchResults = playgrounds.filter(playground => {
+        return playground.Name && playground.Name.toLowerCase().includes(searchTerm);
+    });
+    
+    // Apply other filters to the search results
+    filteredPlaygrounds = searchResults.filter(playground => {
+        // Get current filter states
+        const checkedBathroom = document.querySelector('input[name="bathroom"]:checked');
+        const bathroomValue = checkedBathroom ? checkedBathroom.value : '';
+        const sensoryChecked = document.getElementById('sensory-filter').getAttribute('data-active') === 'true';
+        const sprayChecked = document.getElementById('spray-filter').getAttribute('data-active') === 'true';
+        const fountainChecked = document.getElementById('fountain-filter').getAttribute('data-active') === 'true';
+        const noveltyChecked = document.getElementById('novelty-filter').getAttribute('data-active') === 'true';
+        
+        // Apply novelty filter
+        if (noveltyChecked) {
+            if (!playground.reviews || !playground.reviews.emoji || 
+                playground.reviews.emoji === 'unknown' || playground.reviews.emoji.trim() === '') {
+                return false;
+            }
+        }
+        
+        // Apply bathroom filter
+        if (bathroomValue === 'has-bathroom') {
+            if (playground.ADA_Accessible_Comfort_Station === 'No' || !playground.ADA_Accessible_Comfort_Station) {
+                return false;
+            }
+        } else if (bathroomValue === 'Accessible') {
+            if (playground.ADA_Accessible_Comfort_Station !== 'Accessible') {
+                return false;
+            }
+        }
+        
+        // Apply sensory-friendly filter
+        if (sensoryChecked && playground['Sensory-Friendly'] !== 'Y') {
+            return false;
+        }
+        
+        // Apply spray shower filter
+        if (sprayChecked && !playground.has_spray_showers) {
+            return false;
+        }
+        
+        // Apply water fountain filter
+        if (fountainChecked && !playground.has_drinking_fountains) {
+            return false;
+        }
+        
+        return true;
+    });
+    
+    // Update map and UI
+    addPlaygroundMarkers();
+    updateSearchResultsCount(searchTerm);
+}
+
+// Clear playground search
+function clearPlaygroundSearch() {
+    document.getElementById('playground-search-input').value = '';
+    applyFilters(); // Reset to normal filtered view
+}
+
+// Update results count for search
+function updateSearchResultsCount(searchTerm) {
+    const count = filteredPlaygrounds.length;
+    const total = playgrounds.length;
+    const resultsElement = document.getElementById('results-count');
+    
+    if (count === 0) {
+        resultsElement.textContent = `No playgrounds found matching "${searchTerm}"`;
+    } else {
+        resultsElement.textContent = `Found ${count} playground${count !== 1 ? 's' : ''} matching "${searchTerm}"`;
+    }
 }
 
 // Initialize when page loads

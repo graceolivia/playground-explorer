@@ -5,6 +5,18 @@
     box-sizing: border-box;
 }
 
+/* Custom emoji markers */
+.emoji-marker {
+    background: none !important;
+    border: none !important;
+    font-size: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+}
+
 body {
     font-family: Georgia, 'Times New Roman', Times, serif;
     height: 100vh;
