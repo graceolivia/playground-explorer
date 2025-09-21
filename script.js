@@ -36,7 +36,7 @@ function initMap() {
 // Load playground data from JSON
 async function loadPlaygrounds() {
     try {
-        const response = await fetch('./CombinedJSON03.json');
+        const response = await fetch('./data/CombinedJSON03.updated20250921.json');
         const data = await response.json();
         playgrounds = data.playgrounds;
         filteredPlaygrounds = [...playgrounds]; // Start with all playgrounds
@@ -243,7 +243,7 @@ function applyFilters() {
     filteredPlaygrounds = playgroundsToFilter.filter(playground => {
         // Novelty filter - only show playgrounds with valid emojis
         if (noveltyChecked) {
-            if (!playground.reviews || !playground.reviews.emoji || 
+            if (!playground.reviews || !playground.reviews.emoji ||
                 playground.reviews.emoji === 'unknown' || playground.reviews.emoji.trim() === '') {
                 return false;
             }
