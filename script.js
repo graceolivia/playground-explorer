@@ -201,14 +201,16 @@ function setupFilters() {
     const sprayFilter = document.getElementById('spray-filter');
     const fountainFilter = document.getElementById('fountain-filter');
     const noveltyFilter = document.getElementById('novelty-filter');
+    const reviewsFilter = document.getElementById('reviews-filter');
     const clearButton = document.getElementById('clear-filters');
-    
+
     // Add event listeners
     bathroomRadios.forEach(radio => radio.addEventListener('change', applyFilters));
     sensoryFilter.addEventListener('click', toggleButton);
     sprayFilter.addEventListener('click', toggleButton);
     fountainFilter.addEventListener('click', toggleButton);
     noveltyFilter.addEventListener('click', toggleButton);
+    reviewsFilter.addEventListener('click', toggleButton);
     clearButton.addEventListener('click', clearFilters);
 }
 
@@ -228,6 +230,7 @@ function applyFilters() {
     const sprayChecked = document.getElementById('spray-filter').getAttribute('data-active') === 'true';
     const fountainChecked = document.getElementById('fountain-filter').getAttribute('data-active') === 'true';
     const noveltyChecked = document.getElementById('novelty-filter').getAttribute('data-active') === 'true';
+    const reviewsChecked = document.getElementById('reviews-filter').getAttribute('data-active') === 'true';
     
     // Check if there's an active search term
     const searchTerm = document.getElementById('playground-search-input').value.trim().toLowerCase();
@@ -248,7 +251,29 @@ function applyFilters() {
                 return false;
             }
         }
-        
+
+        // Reviews filter - only show playgrounds with meaningful review content
+        if (reviewsChecked) {
+            if (!playground.reviews) {
+                return false;
+            }
+
+            // Check if any review field has meaningful content (not "unknown")
+            const hasReviews = (
+                (playground.reviews.bestAge && playground.reviews.bestAge !== 'unknown') ||
+                (playground.reviews.theme && Array.isArray(playground.reviews.theme) &&
+                 playground.reviews.theme.length > 0 && playground.reviews.theme[0] !== 'unknown') ||
+                (playground.reviews.noveltyTraits && Array.isArray(playground.reviews.noveltyTraits) &&
+                 playground.reviews.noveltyTraits.length > 0 && playground.reviews.noveltyTraits[0] !== 'unknown') ||
+                (playground.reviews.notes && playground.reviews.notes !== 'unknown') ||
+                (playground.reviews.emoji && playground.reviews.emoji !== 'unknown' && playground.reviews.emoji.trim() !== '')
+            );
+
+            if (!hasReviews) {
+                return false;
+            }
+        }
+
         // Bathroom filter
         if (bathroomValue === 'has-bathroom') {
             // Show any playground with bathrooms (accessible or not accessible)
@@ -296,12 +321,13 @@ function clearFilters() {
     // Clear radio buttons
     const bathroomRadios = document.querySelectorAll('input[name="bathroom"]');
     bathroomRadios.forEach(radio => radio.checked = false);
-    
+
     // Clear toggle buttons
     document.getElementById('sensory-filter').setAttribute('data-active', 'false');
     document.getElementById('spray-filter').setAttribute('data-active', 'false');
     document.getElementById('fountain-filter').setAttribute('data-active', 'false');
     document.getElementById('novelty-filter').setAttribute('data-active', 'false');
+    document.getElementById('reviews-filter').setAttribute('data-active', 'false');
     
     // Clear playground search
     document.getElementById('playground-search-input').value = '';
